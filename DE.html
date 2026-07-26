@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ultimate Advanced World Facts — Rahul Jana</title>
+
+<style>
+  :root{
+    --lav1:#F2E9FF;
+    --lav2:#D8B7F4;
+    --purple:#4a2ca7;
+    --glass: rgba(255,255,255,0.14);
+    --glass-strong: rgba(255,255,255,0.22);
+    --text-dark:#1a1a1a;
+    --card-radius:18px;
+  }
+
+  /* --------- Basic / Reset ---------- */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color:var(--text-dark);
+    min-height:100vh;
+    overflow-x:hidden;
+    background: linear-gradient(135deg,#a06bf7 0%, #4a2ca7 60%, #2b0059 100%);
+  }
+
+  /* -------- Splash Loader -------- */
+  #splash{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+    z-index:9999;backdrop-filter: blur(6px);
+  }
+  #splash .box{
+    text-align:center;color:#fff;
+    transform-origin:center;
+  }
+  #splash h2{font-size:34px; margin: 0 0 6px; text-shadow:0 6px 18px rgba(0,0,0,0.45)}
+  #splash p{opacity:0.9}
+
+  /* -------- Header / Nav -------- */
+  header{
+    position:sticky; top:0; z-index:800;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .nav{
+    max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:12px 20px;
+  }
+  .logo{color:white;font-weight:800;letter-spacing:0.4px}
+  nav a{
+    color:#fff;text-decoration:none;margin:0 12px;font-weight:700;opacity:0.95;
+  }
+  nav a:hover{opacity:1;transform:translateY(-2px);transition:0.18s}
+
+  /* -------- Top controls -------- */
+  .controls{display:flex;align-items:center;gap:10px}
+  .btn{
+    background:#fff;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  }
+  .toggle{
+    background:transparent;border:2px solid rgba(255,255,255,0.15);padding:6px 10px;border-radius:999px;color:#fff;
+  }
+
+  /* -------- Particle canvas behind content -------- */
+  #particleCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.6}
+
+  /* -------- Main container & title -------- */
+  main{position:relative;z-index:5;max-width:1100px;margin:36px auto;padding:0 18px 80px}
+  .title{
+    text-align:center;color:#fff;margin-top:22px;
+    text-shadow: 0 8px 28px rgba(0,0,0,0.4);
+  }
+  .title h1{font-size:44px;margin:6px 0}
+  .title .underline{height:6px;width:220px;background:linear-gradient(90deg,#ffd6ff,#b18cff);border-radius:6px;margin:8px auto 18px;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+
+  /* -------- Card area -------- */
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+    border-radius: var(--card-radius);
+    padding:26px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.1);
+    margin: 18px auto;
+  }
+
+  /* ------ Facts as flip cards grid ------ */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .fact{
+    perspective:1000px;
+    height:120px;
+  }
+  .inner{
+    position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d;
+    border-radius:12px;cursor:pointer;
+  }
+  .inner.is-flipped{transform:rotateY(180deg)}
+  .side{
+    position:absolute;inset:0;border-radius:12px;padding:14px;backface-visibility:hidden;display:flex;align-items:center;gap:12px;
+    font-size:16px;
+  }
+  .front{background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));}
+  .back{background: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.12));color:#fff;transform:rotateY(180deg);font-size:14px;padding:18px;flex-direction:column;justify-content:center}
+  .emoji{font-size:28px;width:44px;height:44px;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
+  .fact p{margin:0;line-height:1.5}
+
+  /* single column on small screens */
+  @media (max-width:840px){
+    .grid{grid-template-columns:1fr}
+    .title h1{font-size:32px}
+  }
+
+  /* -------- Footer -------- */
+  footer{color:#fff;text-align:center;padding:22px 8px;margin-top:28px;opacity:0.95}
+
+  /* -------- Floating images and hover zoom -------- */
+  .img-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .img-card{width:120px;height:80px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .25s, box-shadow .25s}
+  .img-card img{width:100%;height:100%;object-fit:cover}
+  .img-card:hover{transform:scale(1.06);box-shadow:0 12px 30px rgba(0,0,0,0.26)}
+
+  /* -------- Scroll animations (visible) -------- */
+  .hidden{opacity:0;transform:translateY(18px);transition:all .7s ease}
+  .show{opacity:1;transform:none}
+
+  /* -------- Dark mode -------- */
+  .dark body{background: linear-gradient(135deg,#120427 0%, #2f003d 60%, #080018 100%)}
+  .dark .card{background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.05)}
+  .dark .title h1, .dark footer { color: #EDE6FF}
+  .dark nav a{color: #f6ecff}
+
+  /* -------- small helpers -------- */
+  .center{display:flex;justify-content:center}
+  .muted{opacity:0.86;font-size:13px}
+  .download {margin-top:18px}
+</style>
+</head>
+
+<body>
+
+<!-- Particle canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Splash screen -->
+<div id="splash">
+  <div class="box">
+    <h2>Rahul's World Facts</h2>
+    <p>Loading the magic... ✨</p>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="nav">
+    <div class="logo">🌐 Rahul's Facts</div>
+    <nav>
+      <a href="#facts">Facts</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#about">About</a>
+      <a href="#footer">Contact</a>
+    </nav>
+
+    <div class="controls">
+      <button class="toggle" id="darkToggle" title="Toggle dark mode">🌙</button>
+      <button class="btn" id="musicBtn" title="Play / Pause music">🔊 Play Music</button>
+      <button class="btn" id="printBtn" title="Save page as PDF via Print">⤓ Save as PDF</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="title hidden">
+    <h1>Facts of the World — Ultimate Edition</h1>
+    <div class="underline"></div>
+    <p class="muted">Interactive, responsive, and super stylish — built by Rahul Jana 💜</p>
+  </section>
+
+  <!-- Card -->
+  <section id="facts" class="card hidden">
+    <h2 style="color:#fff;text-align:center;margin:0 0 12px;font-size:28px">🌍 Advanced World Facts</h2>
+
+    <!-- Flip-card grid -->
+    <div class="grid" id="grid">
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🌋</div>
+            <p><b>More than 80% of volcanic activity</b> on Earth happens under the oceans.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Submarine volcanism shapes ocean basins and creates hydrothermal vents.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🌪️</div>
+            <p><b>Fastest wind ever recorded:</b> 407 km/h in a tornado.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Tornado wind measurements come from specialized mobile Doppler radars.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🌊</div>
+            <p><b>Mariana Trench:</b> Deeper than Mount Everest is tall.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Challenger Deep reaches ~11,000 meters below sea level.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🔥</div>
+            <p><b>Earth's core temperature</b> is ~5,400°C — comparable to the Sun's surface.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Heat from the core drives plate tectonics and the magnetic field.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">⚡</div>
+            <p><b>Lightning strikes</b> Earth roughly 100 times every second.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Lightning releases huge energy and makes nitrogen compounds in the atmosphere.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">💨</div>
+            <p><b>Hurricanes</b> release more energy than thousands of nuclear bombs.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> The total heat release of a hurricane is enormous — mostly from condensation.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🌕</div>
+            <p><b>The Moon moves away</b> from Earth by about 3.8 cm every year.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Tidal friction transfers Earth's rotational momentum to the Moon's orbit.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="fact">
+        <div class="inner" tabindex="0">
+          <div class="side front">
+            <div class="emoji">🐋</div>
+            <p><b>Blue whale:</b> largest animal ever, up to 30 m long.</p>
+          </div>
+          <div class="side back">
+            <div><b>Detail:</b> Blue whales filter-feed on krill and are endangered but recovering in some regions.</div>
+            <small class="muted">Tap or click to flip</small>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- grid -->
+
+    <!-- download / print button -->
+    <div class="center download">
+      <button class="btn" id="printBtn2">🖨️ Print / Save as PDF</button>
+    </div>
+
+  </section>
+
+  <!-- Gallery -->
+  <section id="gallery" class="card hidden">
+    <h3 style="color:#fff;text-align:center;margin:6px 0 14px">Image Gallery — Hover to zoom</h3>
+    <div class="img-row">
+      <div class="img-card"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='240'><rect width='100%' height='100%' fill='%23b48bff'/><text x='50%' y='50%' font-size='28' font-family='Arial' dominant-baseline='middle' text-anchor='middle' fill='white'>Volcano</text></svg>" alt=""></div>
+
+      <div class="img-card"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='240'><rect width='100%' height='100%' fill='%23ffb3e6'/><text x='50%' y='50%' font-size='28' font-family='Arial' dominant-baseline='middle' text-anchor='middle' fill='white'>Tornado</text></svg>" alt=""></div>
+
+      <div class="img-card"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='240'><rect width='100%' height='100%' fill='%2397d7ff'/><text x='50%' y='50%' font-size='28' font-family='Arial' dominant-baseline='middle' text-anchor='middle' fill='white'>Ocean</text></svg>" alt=""></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="card hidden" style="text-align:center">
+    <h3 style="color:#fff;margin:0 0 8px">About This Page</h3>
+    <p class="muted">Created by <b>Rahul Jana</b>. This page demonstrates many modern web features in a single file: animations, flip-cards, particles, and responsive layout.</p>
+  </section>
+
+</main>
+
+<footer id="footer">
+  Created by <b>Rahul Jana</b> 💜 | 2025
+</footer>
+
+<!-- Hidden audio element -->
+<audio id="bgMusic" loop>
+  <source src="" />
+  <!-- We'll use WebAudio JS for a simple generated tone if autoplay fails, but user can play with button -->
+</audio>
+
+<script>
+/* ================= Splash -> hide after 1.6s ================= */
+window.addEventListener('load', () => {
+  setTimeout(()=> {
+    document.getElementById('splash').style.display='none';
+    document.querySelectorAll('.hidden').forEach(el=> el.classList.add('show'));
+  }, 1600);
+});
+
+/* ================= Particle System ================= */
+(() => {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = innerWidth;
+  let h = canvas.height = innerHeight;
+  const particles = [];
+  const colors = ['rgba(255,255,255,0.12)','rgba(255,255,255,0.08)','rgba(255,255,255,0.06)'];
+
+  function resize(){ w = canvas.width = innerWidth; h = canvas.height = innerHeight; }
+  addEventListener('resize', resize);
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  for(let i=0;i<65;i++){
+    particles.push({
+      x: rand(0,w),
+      y: rand(0,h),
+      r: rand(1,4),
+      vx: rand(-0.2,0.2),
+      vy: rand(-0.15,0.15),
+      c: colors[Math.floor(rand(0,colors.length))]
+    });
+  }
+
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.x += p.vx;
+      p.y += p.vy;
+      if(p.x<0) p.x = w;
+      if(p.x>w) p.x = 0;
+      if(p.y<0) p.y = h;
+      if(p.y>h) p.y = 0;
+      ctx.beginPath();
+      ctx.fillStyle = p.c;
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+/* ================= Flip card interactions ================= */
+document.querySelectorAll('.inner').forEach(el=>{
+  el.addEventListener('click', ()=> el.classList.toggle('is-flipped'));
+  el.addEventListener('keydown', (e)=> { if(e.key==='Enter') el.classList.toggle('is-flipped'); });
+});
+
+/* ================= IntersectionObserver for reveal ================= */
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting) en.target.classList.add('show');
+  });
+},{threshold:0.18});
+document.querySelectorAll('.hidden').forEach(el=> obs.observe(el));
+
+/* ================= Dark mode toggle ================= */
+const darkBtn = document.getElementById('darkToggle');
+darkBtn.addEventListener('click', ()=>{
+  document.documentElement.classList.toggle('dark');
+  // change icon
+  darkBtn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+});
+
+/* ================= Background music (simple oscillator fallback) ================= */
+const musicBtn = document.getElementById('musicBtn');
+let audioCtx=null, osc=null, playing=false;
+musicBtn.addEventListener('click', async ()=>{
+  if(!audioCtx){
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // create mellow chord using two oscillators
+      const gain = audioCtx.createGain(); gain.gain.value = 0.02; gain.connect(audioCtx.destination);
+      const o1 = audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value = 220;
+      const o2 = audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value = 330;
+      o1.connect(gain); o2.connect(gain); o1.start(); o2.start();
+      osc = [o1,o2,gain];
+      playing = true; musicBtn.textContent = '🔈 Pause Music';
+    }catch(e){
+      alert('Audio not allowed. Click the button again or allow sound.');
+    }
+  } else {
+    if(playing){
+      osc[2].gain.value = 0; musicBtn.textContent = '🔇 Play Music';
+      playing = false;
+    } else {
+      osc[2].gain.value = 0.02; musicBtn.textContent = '🔈 Pause Music';
+      playing = true;
+    }
+  }
+});
+
+/* ================= Print / Save as PDF ================= */
+const printBtns = [document.getElementById('printBtn'), document.getElementById('printBtn2')];
+printBtns.forEach(b=>{
+  if(!b) return;
+  b.addEventListener('click', ()=> {
+    // Helpful print style could be added, but browser Print -> Save as PDF works well.
+    window.print();
+  });
+});
+
+/* ================= Smooth scroll small tweak (close mobile nav if any) ================= */
+/* (We have a simple nav so no extra code needed) */
+
+/* ================= Accessibility: allow keyboard focus visible style ================= */
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Tab') document.documentElement.classList.add('show-focus');
+});
+
+</script>
+
+</body>
+</html>
+
